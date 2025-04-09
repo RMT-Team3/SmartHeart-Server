@@ -71,15 +71,23 @@ class Controller {
       }
 
       const { interests, personalities } = user;
-      console.log(interests, personalities);
+      // console.log(interests, personalities);
 
       const fetchUsersInterests = await User.findAll({
-        attributes: ["id", "name", "interests", "personalities"],
+        attributes: [
+          "id",
+          "name",
+          "interests",
+          "personalities",
+          "gender",
+          "imageUrl",
+          "foundMatch"
+        ],
         where: {
           id: {
-            [Op.notIn]: excludedId,
-          },
-        },
+            [Op.notIn]: excludedId
+          }
+        }
       });
 
       // console.log(JSON.stringify(fetchUsersInterests, null, 2));
@@ -90,18 +98,25 @@ class Controller {
         model: "gemini-2.0-flash",
         contents: `
           Find me one person from this data: 
-          ${JSON.stringify(fetchUsersInterests, null, 2)} 
-          that best matches me in romace according to my interests: ${interests} and personalities: ${personalities}. Then output the result in JSON format with the following attributes: id, name, interests, personalities of the matching person.
+          ${JSON.stringify(fetchUsersInterests, null, 2)}  
+          with attribute: foundMatch == false, that best matches me in romance according to my interests: ${interests} and personalities: ${personalities}. Then output the result in JSON format with all attributes of the matching person.
 
           Lastly, add a "message" key to the JSON object with the value of a single sentence describing the match between me and the person in romance.
 
           Only output the JSON object, nothing else.
-          `,
+          `
       });
       const matchingPartner = JSON.parse(
         response.text.replace("```json", "").replace("```", "")
       );
-      console.log(matchingPartner);
+      // console.log(matchingPartner);
+
+      // Update kedua user foundMatch ke true
+      await User.update(
+        { foundMatch: true },
+        { where: { id: matchingPartner.id } }
+      );
+      await user.update({ foundMatch: true });
 
       //   res.status(200).json(matchingPartner);
       if (res) {
@@ -139,9 +154,9 @@ class Controller {
         where: {
           [Op.or]: [
             { user1Id: userId, user2Id: matchingPartner.id },
-            { user1Id: matchingPartner.id, user2Id: userId },
-          ],
-        },
+            { user1Id: matchingPartner.id, user2Id: userId }
+          ]
+        }
       });
 
       if (existingRoom) {
@@ -151,7 +166,7 @@ class Controller {
       // Buat room baru
       const newRoom = await Room.create({
         user1Id: userId,
-        user2Id: matchingPartner.id,
+        user2Id: matchingPartner.id
       });
 
       res.status(201).json({
@@ -160,14 +175,14 @@ class Controller {
           id: newRoom.id,
           user1: {
             id: user.id,
-            name: user.name,
+            name: user.name
           },
           user2: {
             id: matchingPartner.id,
-            name: matchingPartner.name,
+            name: matchingPartner.name
           },
-          matchMessage: matchingPartner.message, // Tambahkan pesan kecocokan
-        },
+          matchMessage: matchingPartner.message // Tambahkan pesan kecocokan
+        }
       });
     } catch (err) {
       next(err);
