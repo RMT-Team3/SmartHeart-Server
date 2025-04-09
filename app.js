@@ -11,6 +11,7 @@ const port = 3000;
 
 const { createServer } = require("http");
 const { Server } = require("socket.io");
+const { verify } = require("./helpers/jwt");
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -44,10 +45,37 @@ app.use(errorHandler);
 //   console.log(`Example app listening on port ${port}`);
 // });
 
+const broadcastOnlineUsers = async (io) => {
+  const sockets = await io.fetchSockets();
+
+  const onlineUsers = [];
+
+  for (const socket of sockets) {
+    const { token } = socket.handshake.auth;
+    socket.userId = token ? verify(token).id : null;
+    // console.log(socket.id, socket.userId);
+    onlineUsers.push({ userId: socket.userId, id: socket.id });
+  }
+
+  io.emit("onlineUsers", onlineUsers);
+};
+
 io.on("connection", (socket) => {
   // ...
-  console.log(socket.id, "connected");
+  // console.log(socket.handshake.auth);
   socket.emit("connected", socket.id);
+
+  broadcastOnlineUsers(io);
+
+  socket.on("chat message", (msg) => {
+    console.log("Message received:", msg);
+    // Broadcast the message to all connected clients
+    io.emit("chat message", msg);
+  });
+
+  socket.on("disconnect", () => {
+    broadcastOnlineUsers(io);
+  });
 });
 
 httpServer.listen(port, () => {
