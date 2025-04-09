@@ -14,6 +14,8 @@ module.exports = {
         personalities: "Introverted and thoughtful",
         gender: "male",
         foundMatch: false,
+        imageUrl:
+          "https://skiblue.co.uk/wp-content/uploads/2015/06/dummy-profile.png",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -25,6 +27,8 @@ module.exports = {
         personalities: "Extroverted and adventurous",
         gender: "female",
         foundMatch: false,
+        imageUrl:
+          "https://cpdi-pakistan.org/wp-content/uploads/2020/08/dummy-profile-pic-female-300n300.jpg",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -36,6 +40,8 @@ module.exports = {
         personalities: "Introverted and analytical",
         gender: "female",
         foundMatch: false,
+        imageUrl:
+          "https://cpdi-pakistan.org/wp-content/uploads/2020/08/dummy-profile-pic-female-300n300.jpg",
         createdAt: new Date(),
         updatedAt: new Date(),
       },

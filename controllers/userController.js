@@ -5,16 +5,14 @@ const { User } = require("../models");
 class UserControllers {
   static async register(req, res, next) {
     try {
-      const { name, email, password, interests, personalities, gender } =
-        req.body;
+      const { name, email, password, gender, imageUrl } = req.body;
 
       const newUser = await User.create({
         name,
         email,
         password: password,
-        interests: interests || [],
-        personalities,
         gender,
+        imageUrl,
       });
       console.log(newUser.id, "<<<<<<<<");
 
@@ -22,8 +20,6 @@ class UserControllers {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
-        interests: newUser.interests,
-        personalities: newUser.personalities,
         gender: newUser.gender,
       });
     } catch (err) {

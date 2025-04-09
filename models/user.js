@@ -80,6 +80,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
+      imageUrl: DataTypes.STRING,
     },
     {
       sequelize,
