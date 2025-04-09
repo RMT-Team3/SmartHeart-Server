@@ -56,57 +56,6 @@ class Controller {
     }
   }
 
-  static async createRoom(req, res, next) {
-    try {
-      // Dummy logic generate 2 users
-      const users = await User.findAll({ limit: 2 });
-      if (users.length < 2) {
-        throw {
-          name: "NotFound",
-          message: "Not enough users to create a room"
-        };
-      }
-
-      const user1 = users[0];
-      const user2 = users[1];
-
-      // Check apakah roomnya sudah ada
-      const existingRoom = await Room.findOne({
-        where: {
-          user1Id: user1.id,
-          user2Id: user2.id
-        }
-      });
-
-      if (existingRoom) {
-        throw { name: "BadRequest", message: "Room already exists" };
-      }
-
-      // Create a new room
-      const newRoom = await Room.create({
-        user1Id: user1.id,
-        user2Id: user2.id
-      });
-
-      res.status(201).json({
-        message: "Room created successfully",
-        room: {
-          id: newRoom.id,
-          user1: {
-            id: user1.id,
-            name: user1.name
-          },
-          user2: {
-            id: user2.id,
-            name: user2.name
-          }
-        }
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-
   // Get matching partner from Google GenAI based on interests and personalities
   static async getMatchingPartner(req, res, next) {
     try {
@@ -128,9 +77,9 @@ class Controller {
         attributes: ["id", "name", "interests", "personalities"],
         where: {
           id: {
-            [Op.notIn]: excludedId
-          }
-        }
+            [Op.notIn]: excludedId,
+          },
+        },
       });
 
       // console.log(JSON.stringify(fetchUsersInterests, null, 2));
@@ -147,14 +96,79 @@ class Controller {
           Lastly, add a "message" key to the JSON object with the value of a single sentence describing the match between me and the person in romance.
 
           Only output the JSON object, nothing else.
-          `
+          `,
       });
       const matchingPartner = JSON.parse(
         response.text.replace("```json", "").replace("```", "")
       );
       console.log(matchingPartner);
 
-      res.status(200).json(matchingPartner);
+      //   res.status(200).json(matchingPartner);
+      if (res) {
+        return res.status(200).json(matchingPartner);
+      }
+      return matchingPartner;
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async createRoom(req, res, next) {
+    try {
+      const userId = req.user.id;
+
+      // Cari user berdasarkan ID
+      const user = await User.findByPk(userId);
+      if (!user) {
+        throw { name: "NotFound", message: "User not found" };
+      }
+
+      // Panggil getMatchingPartner untuk mendapatkan pasangan yang cocok
+      const matchingPartner = await Controller.getMatchingPartner(
+        req,
+        null,
+        next
+      );
+
+      if (!matchingPartner || !matchingPartner.id) {
+        throw { name: "NotFound", message: "No matching partner found" };
+      }
+
+      // Periksa apakah room sudah ada
+      const existingRoom = await Room.findOne({
+        where: {
+          [Op.or]: [
+            { user1Id: userId, user2Id: matchingPartner.id },
+            { user1Id: matchingPartner.id, user2Id: userId },
+          ],
+        },
+      });
+
+      if (existingRoom) {
+        throw { name: "BadRequest", message: "Room already exists" };
+      }
+
+      // Buat room baru
+      const newRoom = await Room.create({
+        user1Id: userId,
+        user2Id: matchingPartner.id,
+      });
+
+      res.status(201).json({
+        message: "Room created successfully",
+        room: {
+          id: newRoom.id,
+          user1: {
+            id: user.id,
+            name: user.name,
+          },
+          user2: {
+            id: matchingPartner.id,
+            name: matchingPartner.name,
+          },
+          matchMessage: matchingPartner.message, // Tambahkan pesan kecocokan
+        },
+      });
     } catch (err) {
       next(err);
     }
