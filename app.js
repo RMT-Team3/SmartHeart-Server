@@ -23,6 +23,8 @@ app.use(authentication);
 app.put("/update", Controller.addPersonalityAndInterest);
 app.post("/rooms", Controller.createRoom);
 
+app.get("/match", Controller.getMatchingPartner);
+
 app.use(errorHandler);
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
