@@ -8,6 +8,16 @@ const Controller = require("./controllers/controller");
 const authentication = require("./middlewares/authentication");
 const app = express();
 const port = 3000;
+
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  /* options */
+  cors: "*"
+});
+
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -30,6 +40,16 @@ app.get("/rooms/:id", Controller.getRoomById);
 app.get("/match", Controller.getMatchingPartner);
 
 app.use(errorHandler);
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`);
+// });
+
+io.on("connection", (socket) => {
+  // ...
+  console.log(socket.id, "connected");
+  socket.emit("connected", socket.id);
+});
+
+httpServer.listen(port, () => {
+  console.log(`Server listening on port:${port}`);
 });
