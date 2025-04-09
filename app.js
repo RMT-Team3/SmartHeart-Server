@@ -25,6 +25,7 @@ app.get("/profile", UserControllers.getUserProfile);
 app.put("/update", Controller.addPersonalityAndInterest);
 
 app.post("/rooms", Controller.createRoom);
+app.get("/rooms/:id", Controller.getRoomById);
 
 app.get("/match", Controller.getMatchingPartner);
 

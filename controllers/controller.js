@@ -36,7 +36,7 @@ class Controller {
         interests,
         personalities,
         gender,
-        imageUrl
+        imageUrl,
       });
 
       res.status(200).json({
@@ -48,8 +48,8 @@ class Controller {
           interests: user.interests,
           personalities: user.personalities,
           gender: user.gender,
-          imageUrl: user.imageUrl
-        }
+          imageUrl: user.imageUrl,
+        },
       });
     } catch (err) {
       next(err);
@@ -81,13 +81,13 @@ class Controller {
           "personalities",
           "gender",
           "imageUrl",
-          "foundMatch"
+          "foundMatch",
         ],
         where: {
           id: {
-            [Op.notIn]: excludedId
-          }
-        }
+            [Op.notIn]: excludedId,
+          },
+        },
       });
 
       // console.log(JSON.stringify(fetchUsersInterests, null, 2));
@@ -104,7 +104,7 @@ class Controller {
           Lastly, add a "message" key to the JSON object with the value of a single sentence describing the match between me and the person in romance.
 
           Only output the JSON object, nothing else.
-          `
+          `,
       });
       const matchingPartner = JSON.parse(
         response.text.replace("```json", "").replace("```", "")
@@ -154,9 +154,9 @@ class Controller {
         where: {
           [Op.or]: [
             { user1Id: userId, user2Id: matchingPartner.id },
-            { user1Id: matchingPartner.id, user2Id: userId }
-          ]
-        }
+            { user1Id: matchingPartner.id, user2Id: userId },
+          ],
+        },
       });
 
       if (existingRoom) {
@@ -166,7 +166,7 @@ class Controller {
       // Buat room baru
       const newRoom = await Room.create({
         user1Id: userId,
-        user2Id: matchingPartner.id
+        user2Id: matchingPartner.id,
       });
 
       res.status(201).json({
@@ -175,14 +175,42 @@ class Controller {
           id: newRoom.id,
           user1: {
             id: user.id,
-            name: user.name
+            name: user.name,
           },
           user2: {
             id: matchingPartner.id,
-            name: matchingPartner.name
+            name: matchingPartner.name,
           },
-          matchMessage: matchingPartner.message // Tambahkan pesan kecocokan
-        }
+          matchMessage: matchingPartner.message, // Tambahkan pesan kecocokan
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getRoomById(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const room = await Room.findByPk(id, {
+        include: [
+          { model: User, as: "User1", attributes: ["id", "name", "imageUrl"] },
+          { model: User, as: "User2", attributes: ["id", "name", "imageUrl"] },
+        ],
+      });
+
+      if (!room) {
+        throw { name: "NotFound", message: "Room not found" };
+      }
+
+      res.status(200).json({
+        message: "Room retrieved successfully",
+        room: {
+          id: room.id,
+          user1: room.User1,
+          user2: room.User2,
+        },
       });
     } catch (err) {
       next(err);
