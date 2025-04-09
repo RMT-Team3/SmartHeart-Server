@@ -5,16 +5,16 @@ module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
       User.hasMany(models.Message, {
-        foreignKey: "senderId",
+        foreignKey: "senderId"
       });
       User.hasOne(models.Room, {
         foreignKey: "user1Id",
-        as: "MatchedRoomAsUser1",
+        as: "MatchedRoomAsUser1"
       });
 
       User.hasOne(models.Room, {
         foreignKey: "user2Id",
-        as: "MatchedRoomAsUser2",
+        as: "MatchedRoomAsUser2"
       });
     }
   }
@@ -25,62 +25,70 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           notEmpty: {
-            msg: "Name is required",
+            msg: "Name is required"
           },
           notNull: {
-            msg: "Name is required",
-          },
-        },
+            msg: "Name is required"
+          }
+        }
       },
       email: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
           notEmpty: {
-            msg: "Email is required",
+            msg: "Email is required"
           },
           notNull: {
-            msg: "Email is required",
+            msg: "Email is required"
           },
           isEmail: {
-            msg: "Must be a valid email address",
-          },
+            msg: "Must be a valid email address"
+          }
         },
         unique: {
-          message: "Email is already taken",
-        },
+          message: "Email is already taken"
+        }
       },
       password: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
           notEmpty: {
-            msg: "Password is required",
+            msg: "Password is required"
           },
           notNull: {
-            msg: "Password is required",
-          },
-        },
+            msg: "Password is required"
+          }
+        }
       },
       interests: {
         type: DataTypes.JSON,
         allowNull: true,
-        defaultValue: [],
+        defaultValue: []
       },
       personalities: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: true
       },
-      gender: DataTypes.STRING,
+      gender: {
+        type: DataTypes.STRING,
+        validate: {
+          isIn: {
+            args: [["Female", "Male"]],
+            msg: "Gender must be either Male or Female"
+          }
+        }
+      },
       status: {
         type: DataTypes.STRING,
-        defaultValue: "online",
+        defaultValue: "online"
       },
       foundMatch: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false,
+        defaultValue: false
       },
-      imageUrl: DataTypes.STRING,
+      imageUrl: DataTypes.STRING
     },
     {
       sequelize,
@@ -95,8 +103,8 @@ module.exports = (sequelize, DataTypes) => {
           if (user.changed("password")) {
             user.password = hashPassword(user.password);
           }
-        },
-      },
+        }
+      }
     }
   );
   return User;
