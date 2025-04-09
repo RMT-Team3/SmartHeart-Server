@@ -12,7 +12,7 @@ class UserControllers {
         email,
         password: password,
         gender,
-        imageUrl,
+        imageUrl
       });
       console.log(newUser.id, "<<<<<<<<");
 
@@ -20,7 +20,7 @@ class UserControllers {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
-        gender: newUser.gender,
+        gender: newUser.gender
       });
     } catch (err) {
       next(err);
@@ -47,6 +47,30 @@ class UserControllers {
       }
       const access_token = sign({ id: user.id });
       res.status(200).json({ access_token });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getUserProfile(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const user = await User.findByPk(userId, {
+        attributes: {
+          exclude: [
+            "password",
+            "id",
+            "email",
+            "createdAt",
+            "updatedAt",
+            "status"
+          ]
+        }
+      });
+      if (!user) {
+        throw { name: "NotFound", message: "User not found" };
+      }
+      res.status(200).json(user);
     } catch (err) {
       next(err);
     }

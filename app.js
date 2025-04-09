@@ -20,7 +20,10 @@ app.post("/register", UserControllers.register);
 app.post("/login", UserControllers.login);
 
 app.use(authentication);
+
+app.get("/profile", UserControllers.getUserProfile);
 app.put("/update", Controller.addPersonalityAndInterest);
+
 app.post("/rooms", Controller.createRoom);
 
 app.get("/match", Controller.getMatchingPartner);
