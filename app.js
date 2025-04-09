@@ -21,6 +21,7 @@ app.post("/login", UserControllers.login);
 
 app.use(authentication);
 app.put("/update", Controller.addPersonalityAndInterest);
+app.post("/rooms", Controller.createRoom);
 
 app.use(errorHandler);
 app.listen(port, () => {
