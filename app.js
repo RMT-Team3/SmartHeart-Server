@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
+=======
+require("dotenv").config();
+const { User } = require("./models");
+
+>>>>>>> feat/socket-server
 const cors = require("cors");
 const express = require("express");
 const errorHandler = require("./middlewares/errorHandler");
@@ -41,7 +47,6 @@ app.post("/rooms", Controller.createRoom);
 app.get("/rooms/:id", Controller.getRoomById);
 
 app.get("/match", Controller.getMatchingPartner);
-
 app.use(errorHandler);
 // app.listen(port, () => {
 //   console.log(`Example app listening on port ${port}`);
@@ -72,15 +77,37 @@ io.on("connection", (socket) => {
   socket.on("chat message", (msg) => {
     console.log("Message received:", msg);
     // Broadcast the message to all connected clients
+
     io.emit("chat message", msg);
   });
 
+  socket.on("joinRoom", async (roomId) => {
+    console.log("User joined room:", roomId);
+    socket.join(roomId);
+
+    // Ambil semua pesan dalam room
+    const messages = await Message.findAll({
+      where: { roomId },
+      include: [{ model: User, attributes: ["name"] }],
+    });
+
+    // Kirim semua pesan ke klien yang baru bergabung
+    socket.emit("previousMessages", messages);
+  });
+  socket.on("foundMatch", async (msg) => {
+    console.log("foundMatch:", msg);
+    const { userId, matchId } = msg;
+
+    // Emit event ke kedua user
+    io.emit(`foundMatch:${matchId}`, msg);
+  });
   //capture new chat
   socket.on("newChat", async (msg) => {
     console.log("New chat:", msg);
 
     try {
       // Simpan pesan ke database
+      const user = await User.findByPk(socket.userId);
       const newMessage = await Message.create({
         roomId: msg.roomId,
         senderId: socket.userId,
@@ -88,8 +115,8 @@ io.on("connection", (socket) => {
       });
 
       console.log("New message saved to database:", newMessage);
-      // Broadcast pesan ke semua klien
-      io.emit("newChat", newMessage);
+
+      io.to(msg.roomId).emit("newChat", { ...newMessage.toJSON(), User: user });
     } catch (err) {
       console.error("Error saving chat to database:", err);
     }

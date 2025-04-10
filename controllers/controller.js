@@ -64,7 +64,7 @@ class Controller {
 
       // Sementara pake ini kalo mau ganti match
       const { lastMatch } = req.query;
-      const excludedId = lastMatch ? [lastMatch, userId] : [userId];
+      // const excludedId = lastMatch ? [lastMatch, userId] : [userId];
 
       if (!user) {
         throw { name: "NotFound", message: "User not found" };
@@ -85,11 +85,11 @@ class Controller {
         ],
         where: {
           id: {
-            [Op.notIn]: excludedId,
+            [Op.notIn]: [userId],
           },
+          foundMatch: false,
         },
       });
-
       // console.log(JSON.stringify(fetchUsersInterests, null, 2));
 
       const ai = new GoogleGenAI({ apiKey: process.env.GENAI_API_KEY });
@@ -109,14 +109,9 @@ class Controller {
       const matchingPartner = JSON.parse(
         response.text.replace("```json", "").replace("```", "")
       );
-      // console.log(matchingPartner);
+      console.log(matchingPartner);
 
       // Update kedua user foundMatch ke true
-      await User.update(
-        { foundMatch: true },
-        { where: { id: matchingPartner.id } }
-      );
-      await user.update({ foundMatch: true });
 
       //   res.status(200).json(matchingPartner);
       if (res) {
@@ -158,6 +153,11 @@ class Controller {
           ],
         },
       });
+      await User.update(
+        { foundMatch: true },
+        { where: { id: matchingPartner.id } }
+      );
+      await user.update({ foundMatch: true });
 
       if (existingRoom) {
         return res.status(201).json({
