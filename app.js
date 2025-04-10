@@ -1,12 +1,10 @@
-<<<<<<< HEAD
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
-=======
+
 require("dotenv").config();
 const { User } = require("./models");
 
->>>>>>> feat/socket-server
 const cors = require("cors");
 const express = require("express");
 const errorHandler = require("./middlewares/errorHandler");
@@ -24,7 +22,7 @@ const { Message } = require("./models");
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   /* options */
-  cors: "*",
+  cors: "*"
 });
 
 app.use(cors());
@@ -88,7 +86,7 @@ io.on("connection", (socket) => {
     // Ambil semua pesan dalam room
     const messages = await Message.findAll({
       where: { roomId },
-      include: [{ model: User, attributes: ["name"] }],
+      include: [{ model: User, attributes: ["name"] }]
     });
 
     // Kirim semua pesan ke klien yang baru bergabung
@@ -111,7 +109,7 @@ io.on("connection", (socket) => {
       const newMessage = await Message.create({
         roomId: msg.roomId,
         senderId: socket.userId,
-        content: msg.content,
+        content: msg.content
       });
 
       console.log("New message saved to database:", newMessage);
