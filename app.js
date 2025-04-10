@@ -12,11 +12,12 @@ const port = 3000;
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const { verify } = require("./helpers/jwt");
+const { Message } = require("./models");
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   /* options */
-  cors: "*"
+  cors: "*",
 });
 
 app.use(cors());
@@ -71,6 +72,26 @@ io.on("connection", (socket) => {
     console.log("Message received:", msg);
     // Broadcast the message to all connected clients
     io.emit("chat message", msg);
+  });
+
+  //capture new chat
+  socket.on("newChat", async (msg) => {
+    console.log("New chat:", msg);
+
+    try {
+      // Simpan pesan ke database
+      const newMessage = await Message.create({
+        roomId: msg.roomId,
+        senderId: socket.userId,
+        content: msg.content,
+      });
+
+      console.log("New message saved to database:", newMessage);
+      // Broadcast pesan ke semua klien
+      io.emit("newChat", newMessage);
+    } catch (err) {
+      console.error("Error saving chat to database:", err);
+    }
   });
 
   socket.on("disconnect", () => {
