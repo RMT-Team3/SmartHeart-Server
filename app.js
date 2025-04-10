@@ -1,5 +1,6 @@
-require("dotenv").config();
-
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 const cors = require("cors");
 const express = require("express");
 const errorHandler = require("./middlewares/errorHandler");
@@ -7,7 +8,7 @@ const UserControllers = require("./controllers/userController");
 const Controller = require("./controllers/controller");
 const authentication = require("./middlewares/authentication");
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
 const { createServer } = require("http");
 const { Server } = require("socket.io");
@@ -99,6 +100,6 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(port, () => {
-  console.log(`Server listening on port:${port}`);
+httpServer.listen(PORT, () => {
+  console.log(`Server listening on port:${PORT}`);
 });
