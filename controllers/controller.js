@@ -160,7 +160,20 @@ class Controller {
       });
 
       if (existingRoom) {
-        throw { name: "BadRequest", message: "Room already exists" };
+        return res.status(201).json({
+          room: {
+            id: existingRoom.id,
+            user1: {
+              id: user.id,
+              name: user.name,
+            },
+            user2: {
+              id: matchingPartner.id,
+              name: matchingPartner.name,
+            },
+            matchMessage: matchingPartner.message,
+          },
+        });
       }
 
       // Buat room baru
@@ -188,11 +201,9 @@ class Controller {
       next(err);
     }
   }
-
   static async getRoomById(req, res, next) {
     try {
       const { id } = req.params;
-
       const room = await Room.findByPk(id, {
         include: [
           { model: User, as: "User1", attributes: ["id", "name", "imageUrl"] },
